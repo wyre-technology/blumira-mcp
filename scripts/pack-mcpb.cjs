@@ -51,7 +51,7 @@ try {
   );
 
   console.log('\n=== Copying production dependencies ===');
-  const prodPaths = execSync('npm ls --production --parseable --all 2>/dev/null', { cwd: ROOT, encoding: 'utf8' })
+  const prodPaths = execSync('npm ls --production --parseable --all 2>/dev/null || true', { cwd: ROOT, encoding: 'utf8' })
     .split('\n')
     .filter(p => p.includes('node_modules'))
     .map(p => p.trim());
