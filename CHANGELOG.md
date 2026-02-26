@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/wyre-technology/blumira-mcp/compare/v1.0.1...v1.0.2) (2026-02-26)
+
+
+### Bug Fixes
+
+* handle npm ls non-zero exit in pack-mcpb ([a12e850](https://github.com/wyre-technology/blumira-mcp/commit/a12e8506a3d616e3166ae737243d746e8516e07b))
+
 ## [1.0.1](https://github.com/wyre-technology/blumira-mcp/compare/v1.0.0...v1.0.1) (2026-02-26)
 
 
