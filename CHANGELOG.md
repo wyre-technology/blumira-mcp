@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/wyre-technology/blumira-mcp/compare/v1.0.2...v1.1.0) (2026-04-06)
+
+
+### Features
+
+* support OAuth2 client credentials in gateway mode ([52c572f](https://github.com/wyre-technology/blumira-mcp/commit/52c572f80215031986919135b1b6b297c9cd9e22))
+
 ## [1.0.2](https://github.com/wyre-technology/blumira-mcp/compare/v1.0.1...v1.0.2) (2026-02-26)
 
 
