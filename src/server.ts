@@ -51,10 +51,15 @@ export function createServer(): Server {
       if (!getCredentials()) {
         const creds = await elicitCredentials(server);
         if (creds) {
-          process.env.BLUMIRA_JWT_TOKEN = creds.jwtToken;
+          if (creds.jwtToken) {
+            process.env.BLUMIRA_JWT_TOKEN = creds.jwtToken;
+          } else if (creds.clientId && creds.clientSecret) {
+            process.env.BLUMIRA_CLIENT_ID = creds.clientId;
+            process.env.BLUMIRA_CLIENT_SECRET = creds.clientSecret;
+          }
         } else {
           return {
-            content: [{ type: 'text' as const, text: 'Blumira JWT token is required. Set BLUMIRA_JWT_TOKEN environment variable.' }],
+            content: [{ type: 'text' as const, text: 'Blumira credentials are required. Set BLUMIRA_JWT_TOKEN or BLUMIRA_CLIENT_ID + BLUMIRA_CLIENT_SECRET.' }],
             isError: true,
           };
         }

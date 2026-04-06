@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import { createServer } from './server.js';
-import { getCredentials } from './utils/client.js';
+import { getCredentials, exchangeOAuthToken } from './utils/client.js';
 import { logger } from './utils/logger.js';
 
 const transports: Record<string, StreamableHTTPServerTransport> = {};
@@ -45,13 +45,28 @@ function startHttpServer(): void {
     }
 
     if (isGatewayMode) {
+      // Support new OAuth headers (preferred) and legacy JWT header
+      const clientId = req.headers['x-blumira-client-id'] as string;
+      const clientSecret = req.headers['x-blumira-client-secret'] as string;
       const jwtToken = req.headers['x-blumira-jwt-token'] as string;
-      if (!jwtToken) {
-        res.writeHead(401, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Missing credentials' }));
-        return;
+
+      if (clientId && clientSecret) {
+        try {
+          const token = await exchangeOAuthToken(clientId, clientSecret);
+          process.env.BLUMIRA_JWT_TOKEN = token;
+          // Also store for OAuth-aware path in client.ts
+          process.env.BLUMIRA_CLIENT_ID = clientId;
+          process.env.BLUMIRA_CLIENT_SECRET = clientSecret;
+        } catch (err) {
+          logger.error('OAuth token exchange failed', { error: (err as Error).message });
+          res.writeHead(401, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'OAuth token exchange failed', detail: (err as Error).message }));
+          return;
+        }
+      } else if (jwtToken) {
+        process.env.BLUMIRA_JWT_TOKEN = jwtToken;
       }
-      process.env.BLUMIRA_JWT_TOKEN = jwtToken;
+      // Allow unauthenticated tools/list — credentials checked only when tools are called
     }
 
     const sessionId = req.headers['mcp-session-id'] as string | undefined;
@@ -59,6 +74,21 @@ function startHttpServer(): void {
     if (req.method === 'POST') {
       const body = await readBody(req);
       const parsed = JSON.parse(body);
+
+      // Allow initialize and tools/list without credentials (unauthenticated discovery)
+      const isUnauthMethod = !Array.isArray(parsed) &&
+        (parsed?.method === 'tools/list' || parsed?.method === 'initialize');
+      if (isGatewayMode && !isUnauthMethod) {
+        const creds = getCredentials();
+        if (!creds) {
+          res.writeHead(401, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({
+            error: 'Missing credentials',
+            detail: 'Provide X-Blumira-Client-ID + X-Blumira-Client-Secret or X-Blumira-JWT-Token headers',
+          }));
+          return;
+        }
+      }
 
       if (sessionId && transports[sessionId]) {
         await transports[sessionId].handleRequest(req, res, parsed);
