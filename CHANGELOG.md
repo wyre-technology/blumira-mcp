@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/wyre-technology/blumira-mcp/compare/v1.1.0...v1.1.1) (2026-04-07)
+
+
+### Bug Fixes
+
+* **ci:** deploy :latest tag, force revision via env var bump ([8999490](https://github.com/wyre-technology/blumira-mcp/commit/8999490503309f593d346fef8906554ece850e82))
+
 # [1.1.0](https://github.com/wyre-technology/blumira-mcp/compare/v1.0.2...v1.1.0) (2026-04-06)
 
 
